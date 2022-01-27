@@ -11,15 +11,12 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
-        
-        // Create a DatePicker
         let datePicker: UIDatePicker = UIDatePicker()
         
         // Posiiton date picket within a view
         datePicker.frame = CGRect(x: 10, y: 50, width: self.view.frame.width, height: 200)
         
-        // Set some of UIDatePicker properties
+        // UIDatePicker properties
         datePicker.timeZone = NSTimeZone.local
         datePicker.backgroundColor = UIColor.white
         
@@ -31,44 +28,47 @@ class ViewController: UIViewController {
         
     }
     
-    var stampDateComponents = Calendar.current.dateComponents([.day, .year, .month], from: Date())
+    var okToCollapse = false
+    var stampDateComponents = DateComponents()
+    var dateComponents = DateComponents()
+    var stampDate = Date() {
+        willSet {
+            stampDateComponents = Calendar.current.dateComponents([.day, .year, .month], from: stampDate)
+        }
+        didSet {
+            dateComponents = Calendar.current.dateComponents([.day, .year, .month], from: stampDate)
+        }
+    }
     
     @objc func datePickerValueChanged(_ sender: UIDatePicker){
         
-        // Create date formatter
+        // Show dates
         let dateFormatter: DateFormatter = DateFormatter()
-        
-        // Set date format
         dateFormatter.dateFormat = "MM/dd/yyyy hh:mm a"
-        
-        // Apply date format
-        let selectedDate0: String = dateFormatter.string(from: Date())
+        let selectedDate0: String = dateFormatter.string(from: stampDate)
         let selectedDate1: String = dateFormatter.string(from: sender.date)
-        
         print("Previous value \(selectedDate0)")
         print("Selected value \(selectedDate1)")
         
-        let dateComponents = Calendar.current.dateComponents([.day, .year, .month], from: sender.date)
+        stampDate = sender.date
         
         let dayCh = dateComponents.day != stampDateComponents.day ? true : false
         let monthCh = dateComponents.month != stampDateComponents.month ? true : false
         let yearCh = dateComponents.year != stampDateComponents.year ? true : false
         
-        //Will have to add stamp date i think
-        if monthCh || yearCh {
-            if dayCh {
-                print("collapse internal")
-            }
-        } else if (monthCh || yearCh) && !dayCh {
+        if dayCh {
             print("collapse")
-        } else {
-            print("other: collapse")
+        } else if !dayCh && (monthCh || yearCh){
+            okToCollapse = true
+            print("next selection will collapse")
+        } else if okToCollapse {
+            print("collapse internal")
+            okToCollapse = false
         }
     }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
     
 }
